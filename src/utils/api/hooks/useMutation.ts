@@ -5,7 +5,7 @@ export const useMutation = <Function extends (...args: any[]) => any>(fn: Functi
 
   return {
     loading,
-    execute: async (...args: Parameters<Function>) => {
+    execute: async (...args: Parameters<Function>): Promise<ReturnType<Function>> => {
       loading.value = true;
       const response = await fn(...args);
       loading.value = false;

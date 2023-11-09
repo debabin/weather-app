@@ -4,14 +4,20 @@ import type { FormInst } from 'naive-ui';
 import { useMessage } from 'naive-ui';
 import { ref } from 'vue';
 import { postSignin } from '@/utils/api/requests';
-import { useMutation } from '@/utils/api/hooks';
+import { useForm, useMutation } from '@/utils/api/hooks';
+import { router, LOCAL_STORAGE_KEYS } from '@/utils/constants';
+import { useLocalStorage } from '@vueuse/core';
+
+const initalValues = {
+  email: '',
+  password: ''
+} as const;
 
 const emit = defineEmits<{ goToSignUp: [] }>();
 
-const model = ref({
-  email: '',
-  password: ''
-});
+const formRef = ref<FormInst | null>(null);
+const form = useForm(initalValues);
+const message = useMessage();
 
 const rules = {
   email: {
@@ -31,23 +37,26 @@ const isLoading = postSigninMutation.loading;
 
 const onSumbit = async () => {
   const response = await postSigninMutation.execute({
-    email: model.value.email,
-    password: model.value.password
+    email: form.model.value.email,
+    password: form.model.value.password
   });
 
-  if (response) {
+  if (response.data.error) {
+    form.errors.value.password = response.data.error;
+  }
+
+  if (response.data.success) {
+    useLocalStorage(LOCAL_STORAGE_KEYS.TOKEN, response.data.token);
     message.success('autheficated');
+    router.push({ name: 'home', replace: true });
   }
 };
-
-const formRef = ref<FormInst | null>(null);
-const message = useMessage();
 </script>
 
 <template>
   <section class="container">
     <div>
-      <n-h1>Sing In</n-h1>
+      <n-h1>Sign In</n-h1>
     </div>
 
     <n-form
@@ -55,22 +64,28 @@ const message = useMessage();
       ref="formRef"
       size="small"
       :show-label="false"
-      :model="model"
+      :model="form.model"
       :rules="rules"
     >
       <n-form-item path="email">
-        <n-input v-model:value="model.email" placeholder="email" />
+        <n-input v-model:value="form.model.value.email" placeholder="email" />
       </n-form-item>
       <n-form-item path="password">
-        <n-input v-model:value="model.password" placeholder="password" />
+        <n-input v-model:value="form.model.value.password" placeholder="password" type="password" />
       </n-form-item>
 
-      <n-space justify="space-between">
-        <n-button :loading="isLoading" size="small" round @click="emit('goToSignUp')"
+      <n-space v-if="form.errors.value.password" justify="space-between" vertical>
+        {{ form.errors.value.password }}
+      </n-space>
+
+      <n-space justify="space-between" vertical class="button_container">
+        <n-button block :loading="isLoading" size="small" round @click="emit('goToSignUp')"
           >Sing up</n-button
         >
         <n-button
+          block
           attr-type="submit"
+          :disabled="!form.dirty.value"
           :loading="isLoading"
           size="small"
           strong
@@ -92,5 +107,9 @@ const message = useMessage();
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+.button_container {
+  margin-top: 20px;
 }
 </style>

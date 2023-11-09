@@ -1,7 +1,9 @@
 <template>
   <n-message-provider>
     <layout>
-      <router-view />
+      <div class="content">
+        <router-view />
+      </div>
     </layout>
   </n-message-provider>
 </template>
@@ -17,6 +19,10 @@ import Layout from './components/Layout/Layout.vue';
   --n-text-color: rgb(51, 54, 57);
   --n-border-color: rgb(239, 239, 245);
   --side-padding: 32px;
+}
+
+.content {
+  height: 100vh;
 }
 
 .container {

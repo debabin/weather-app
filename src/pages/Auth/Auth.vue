@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import SingInForm from './components/SingInForm.vue';
-import SingUpForm from './components/SingUpForm.vue';
+import SingInForm from './components/SignInForm.vue';
+import SingUpForm from './components/SignUpForm.vue';
 
 const form = ref<'signin' | 'signup'>('signin');
 </script>

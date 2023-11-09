@@ -1,4 +1,4 @@
-import type { Options } from 'ky';
+import type { AxiosRequestConfig } from 'axios';
 import { api } from '../../instance';
 
 interface PostSigninParams {
@@ -6,8 +6,7 @@ interface PostSigninParams {
   password: string;
 }
 
-export const postSignin = (params: PostSigninParams, options?: Options) =>
-  api.post('signin', {
-    json: params,
+export const postSignin = (params: PostSigninParams, options?: AxiosRequestConfig) =>
+  api.post('signin', params, {
     ...options
   });

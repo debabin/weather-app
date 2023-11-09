@@ -9,26 +9,27 @@ const mockServerConfig: MockServerConfig = {
         path: '/signin',
         routes: [
           {
-            data: { success: false }
+            data: { success: false, error: 'Invalid credentials' }
           },
           {
-            data: { success: true },
+            data: { success: true, token: 'weather-app' },
             entities: {
               body: {
                 email: 'dima@gmail.com',
                 password: '1234'
               }
-            },
-            interceptors: {
-              response: (data, { setCookie, appendHeader }) => {
-                setCookie('weather-app', '1234', {
-                  maxAge: 3600,
-                  path: '/',
-                  httpOnly: true
-                });
-                return data;
-              }
             }
+          },
+          {
+            entities: {
+              body: {
+                email: 'dima@gmail.com',
+                password: {
+                  checkMode: 'exists'
+                }
+              }
+            },
+            data: { success: false, error: 'Invalid password' }
           }
         ],
         interceptors: {
