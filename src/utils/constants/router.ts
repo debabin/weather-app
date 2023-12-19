@@ -9,9 +9,19 @@ const routes = [
     component: () => import('@/pages/Home/Home.vue')
   },
   {
+    path: '/city/:id',
+    name: 'city',
+    component: () => import('@/pages/City/City.vue')
+  },
+  {
     path: '/auth',
     name: 'auth',
     component: () => import('@/pages/Auth/Auth.vue')
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('@/pages/Profile/Profile.vue')
   }
 ];
 

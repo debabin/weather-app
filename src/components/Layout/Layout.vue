@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Sunny } from '@vicons/ionicons5';
+import { ref } from 'vue';
+import { Sunny, Person } from '@vicons/ionicons5';
 import { darkTheme, lightTheme } from 'naive-ui';
 import { useStorage } from '@vueuse/core';
 
-import { LOCAL_STORAGE_KEYS } from '@/utils/constants';
-import { ref } from 'vue';
+import { LOCAL_STORAGE_KEYS, router } from '@/utils/constants';
+import { useProfileContext } from '@/utils/context/profile';
+
+const profile = useProfileContext().profile;
 
 const storagedTheme = useStorage(LOCAL_STORAGE_KEYS.THEME, 'light');
 const theme = ref(storagedTheme.value === 'dark' ? darkTheme : lightTheme);
@@ -14,6 +17,8 @@ const toggleTheme = () => {
   theme.value = storagedTheme.value === 'dark' ? lightTheme : darkTheme;
   storagedTheme.value = updatedTheme;
 };
+
+const goToProfile = () => router.push({ name: 'profile' });
 </script>
 
 <template>
@@ -22,9 +27,8 @@ const toggleTheme = () => {
       <n-layout-header class="header_container">
         <div class="container header">
           <n-text>🌦️ weather app</n-text>
-          <n-icon size="20" @click="toggleTheme">
-            <sunny />
-          </n-icon>
+          <n-icon size="20" v-if="profile.email" @click="goToProfile" :component="Person" />
+          <n-icon size="20" @click="toggleTheme" :component="Sunny" />
         </div>
       </n-layout-header>
 

@@ -1,11 +1,12 @@
 import type { AxiosRequestConfig } from 'axios';
 import { weatherApi } from '../../../instance';
 
-interface SearchParams {
+interface GetSearchParams {
   q: string;
 }
 
-export const getSearch = (params: SearchParams, options?: AxiosRequestConfig) =>
-  weatherApi.get<City[]>(`search.json?q=${params.q}`, {
-    ...options
+export const getSearch = (params: GetSearchParams, options?: AxiosRequestConfig) =>
+  weatherApi.get<City[]>(`search.json`, {
+    ...options,
+    params: { ...options?.params, ...params }
   });

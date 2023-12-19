@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { useLocalStorage } from '@vueuse/core';
 import type { FormInst } from 'naive-ui';
-
 import { useMessage } from 'naive-ui';
 import { ref } from 'vue';
+
 import { postSignin } from '@/utils/api/requests';
 import { useForm, useMutation } from '@/utils/api/hooks';
 import { router, LOCAL_STORAGE_KEYS } from '@/utils/constants';
-import { useLocalStorage } from '@vueuse/core';
 
 const initalValues = {
   email: '',

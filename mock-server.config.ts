@@ -1,9 +1,72 @@
-import type { MockServerConfig } from 'mock-config-server';
+import { MockServerConfig } from 'mock-config-server';
+
+let cities = [
+  'tomsk-tomsk-russia',
+  'novosibirsk-novosibirsk-russia',
+  'new-york-new-york-united-states-of-america',
+  'paris-ile-de-france-france',
+  'australind-western-australia-australia',
+  'toronto-ontario-canada'
+];
 
 const mockServerConfig: MockServerConfig = {
+  baseUrl: '/api',
+  // interceptors: {
+  //   response: (data, { request, setStatusCode }) => {
+  //     const { token } = request.headers;
+  //     if (request.url.includes('/signin')) return data;
+
+  //     if (!token) {
+  //       setStatusCode(401);
+  //       return { success: false };
+  //     }
+
+  //     return data;
+  //   }
+  // },
   rest: {
-    baseUrl: '/api',
     configs: [
+      {
+        method: 'post',
+        path: '/cities',
+        routes: [
+          {
+            data: { success: true },
+            interceptors: {
+              response: (_, { request }) => {
+                const { id } = request.body;
+                cities.push(id);
+                return cities;
+              }
+            }
+          }
+        ]
+      },
+      {
+        method: 'get',
+        path: '/cities/:id',
+        routes: [
+          {
+            data: { success: true },
+            interceptors: {
+              response: (_, { request }) => {
+                const { id } = request.params;
+                cities = cities.filter((city) => city !== id);
+                return cities;
+              }
+            }
+          }
+        ]
+      },
+      {
+        method: 'get',
+        path: '/cities',
+        routes: [
+          {
+            data: () => cities
+          }
+        ]
+      },
       {
         method: 'post',
         path: '/signin',
@@ -36,6 +99,29 @@ const mockServerConfig: MockServerConfig = {
           request: async ({ setDelay }) => {
             await setDelay(2000);
           }
+        }
+      },
+      {
+        method: 'get',
+        path: '/profile',
+        routes: [
+          {
+            entities: {
+              headers: {
+                token: 'weather-app'
+              }
+            },
+            data: () => ({
+              success: true,
+              profile: {
+                cities,
+                email: 'dima@gmail.com'
+              }
+            })
+          }
+        ],
+        interceptors: {
+          request: ({ setDelay }) => setDelay(2000)
         }
       }
     ]
