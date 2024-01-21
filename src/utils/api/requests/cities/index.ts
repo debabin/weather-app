@@ -2,24 +2,28 @@ import type { AxiosRequestConfig } from 'axios';
 import { api } from '../../instance';
 
 interface GetCitiesParams {
-  limit: number;
-  offset: number;
+  data: { limit: number; offset: number };
+  options?: AxiosRequestConfig;
 }
 
-export const getCities = (params: GetCitiesParams, options?: AxiosRequestConfig) =>
-  api.get<string[]>('cities', {
-    ...options,
-    params: { ...options?.params, ...params }
+export const getCities = (params: GetCitiesParams) =>
+  api.get<{
+    next: boolean;
+    prev: boolean;
+    total: number;
+    data: string[];
+  }>('cities', {
+    ...params.options,
+    params: { ...params.options?.params, ...params.data }
   });
 
 interface DeleteCityParams {
-  id: string;
+  data: { id: string };
+  options?: AxiosRequestConfig;
 }
 
-export const deleteCity = (params: DeleteCityParams, options?: AxiosRequestConfig) =>
-  api.get<string[]>(`cities/${params.id}`, {
-    ...options
-  });
+export const deleteCity = (params: DeleteCityParams) =>
+  api.get<string[]>(`cities/${params.data.id}`, params.options);
 
 interface PostCityParams {
   data: { id: string };
@@ -27,6 +31,4 @@ interface PostCityParams {
 }
 
 export const postCity = (params: PostCityParams) =>
-  api.post<string[]>(`cities/`, params.data, {
-    ...params.options
-  });
+  api.post<string[]>(`cities/`, params.data, params.options);

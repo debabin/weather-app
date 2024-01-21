@@ -1,6 +1,6 @@
 import { MockServerConfig } from 'mock-config-server';
 
-let cities = [
+const popularCities = [
   'tomsk-tomsk-russia',
   'novosibirsk-novosibirsk-russia',
   'new-york-new-york-united-states-of-america',
@@ -8,6 +8,27 @@ let cities = [
   'australind-western-australia-australia',
   'toronto-ontario-canada'
 ];
+
+let cities = [
+  'tomsk-tomsk-russia',
+  'novosibirsk-novosibirsk-russia',
+  'new-york-new-york-united-states-of-america',
+  'paris-ile-de-france-france',
+  'australind-western-australia-australia',
+  'toronto-ontario-canada',
+  'tomsk-tomsk-russia',
+  'novosibirsk-novosibirsk-russia',
+  'new-york-new-york-united-states-of-america',
+  'paris-ile-de-france-france',
+  'australind-western-australia-australia',
+  'toronto-ontario-canada'
+];
+
+let profile = {
+  cities,
+  email: 'dima@gmail.com',
+  name: 'dima'
+};
 
 const mockServerConfig: MockServerConfig = {
   baseUrl: '/api',
@@ -24,6 +45,9 @@ const mockServerConfig: MockServerConfig = {
   //     return data;
   //   }
   // },
+  interceptors: {
+    request: ({ setDelay }) => setDelay(1000)
+  },
   rest: {
     configs: [
       {
@@ -44,15 +68,23 @@ const mockServerConfig: MockServerConfig = {
       },
       {
         method: 'get',
-        path: '/cities/:id',
+        path: '/cities',
         routes: [
           {
-            data: { success: true },
+            data: () => cities,
             interceptors: {
-              response: (_, { request }) => {
-                const { id } = request.params;
-                cities = cities.filter((city) => city !== id);
-                return cities;
+              response: (data, { request }) => {
+                const { limit, offset } = request.query;
+                if (!limit || !offset) return data;
+
+                const step = +offset + +limit;
+
+                return {
+                  next: step + +limit <= data.length,
+                  prev: step - +limit > 0,
+                  total: data.length,
+                  data: data.slice(offset, step)
+                };
               }
             }
           }
@@ -60,13 +92,14 @@ const mockServerConfig: MockServerConfig = {
       },
       {
         method: 'get',
-        path: '/cities',
+        path: '/cities/popular',
         routes: [
           {
-            data: () => cities
+            data: popularCities
           }
         ]
       },
+
       {
         method: 'post',
         path: '/signin',
@@ -94,12 +127,29 @@ const mockServerConfig: MockServerConfig = {
             },
             data: { success: false, error: 'Invalid password' }
           }
-        ],
-        interceptors: {
-          request: async ({ setDelay }) => {
-            await setDelay(2000);
+        ]
+      },
+      {
+        method: 'put',
+        path: '/profile',
+        routes: [
+          {
+            entities: {
+              headers: {
+                token: 'weather-app'
+              }
+            },
+            data: {
+              success: true
+            },
+            interceptors: {
+              response: (data, { request }) => {
+                profile = { ...profile, ...request.body };
+                return { ...data, profile };
+              }
+            }
           }
-        }
+        ]
       },
       {
         method: 'get',
@@ -113,16 +163,10 @@ const mockServerConfig: MockServerConfig = {
             },
             data: () => ({
               success: true,
-              profile: {
-                cities,
-                email: 'dima@gmail.com'
-              }
+              profile
             })
           }
-        ],
-        interceptors: {
-          request: ({ setDelay }) => setDelay(2000)
-        }
+        ]
       }
     ]
   }

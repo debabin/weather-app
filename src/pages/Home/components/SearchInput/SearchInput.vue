@@ -29,7 +29,7 @@ const goToCity = (id: string) => router.push({ name: 'city', params: { id } });
 </script>
 
 <template>
-  <div class="container">
+  <div class="search_container">
     <n-input
       round
       clearable
@@ -37,7 +37,6 @@ const goToCity = (id: string) => router.push({ name: 'city', params: { id } });
       size="large"
       placeholder="Find city"
       @focus="isFocused = true"
-      @blur="isFocused = false"
       v-model:value="search"
       :loading="isLoading"
     >
@@ -48,25 +47,26 @@ const goToCity = (id: string) => router.push({ name: 'city', params: { id } });
     <div class="cities_container" v-if="isFocused">
       <n-list hoverable clickable bordered>
         <n-list-item v-for="city in cities" :key="city.id" @click="goToCity(city.url)">
-          <n-thing :title="city.name" content-style="margin-top: 5px;">
-            <n-space size="small" style="margin-top: 4px">
-              <n-tag :bordered="false" type="info" size="small">{{ city.region }}</n-tag>
-            </n-space>
+          <n-thing content-style="margin-top: 5px;">
+            <n-flex size="small" align-items>
+              <n-tag :bordered="false" type="info" size="small">
+                {{ city.country }} - {{ city.region }}</n-tag
+              >
+              <n-text>{{ city.name }}</n-text>
+            </n-flex>
 
-            <n-text strong depth="3" class="country">
-              {{ city.country }}
-            </n-text>
+            <n-text strong depth="3" class="country"> </n-text>
           </n-thing>
         </n-list-item>
         <n-list-item v-if="!cities.length">No cities</n-list-item>
       </n-list>
     </div>
   </div>
-  <div v-if="isFocused" class="fader" />
+  <div @click="isFocused = false" v-if="isFocused" class="fader" />
 </template>
 
 <style scoped>
-.container {
+.search_container {
   z-index: 9998;
   position: relative;
 }

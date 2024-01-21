@@ -1,6 +1,14 @@
 import { onMounted, ref } from 'vue';
 
-export const useQuery = <Function extends (...args: any[]) => any>(fn: Function) => {
+interface Options<Data> {
+  onSuccess?: (data: Data) => void;
+  skip?: boolean;
+}
+
+export const useQuery = <Function extends (...args: any[]) => any>(
+  fn: Function,
+  options?: Options<Awaited<ReturnType<Function>>>
+) => {
   const loading = ref(false);
   const data = ref<Awaited<ReturnType<typeof fn>>['data'] | null>(null);
 
@@ -8,10 +16,11 @@ export const useQuery = <Function extends (...args: any[]) => any>(fn: Function)
     loading.value = true;
     const response = await fn(...args);
     data.value = response.data;
+    options?.onSuccess && options.onSuccess(response);
     loading.value = false;
   };
 
-  onMounted(query);
+  !options?.skip && onMounted(query);
 
   return {
     loading,

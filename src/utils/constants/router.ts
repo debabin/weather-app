@@ -2,9 +2,13 @@ import { useLocalStorage } from '@vueuse/core';
 import { createRouter, createWebHistory } from 'vue-router';
 import { LOCAL_STORAGE_KEYS } from '.';
 
+export const ROUTES = {
+  HOME: '/'
+};
+
 const routes = [
   {
-    path: '/',
+    path: ROUTES.HOME,
     name: 'home',
     component: () => import('@/pages/Home/Home.vue')
   },

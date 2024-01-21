@@ -52,4 +52,5 @@ namespace Weather {
 interface Profile {
   cities: string[];
   email: string;
+  name?: string;
 }

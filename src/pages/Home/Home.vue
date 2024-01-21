@@ -1,33 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { watchDebounced } from '@vueuse/core';
 
 import CityItem from '@/components/CityItem/CityItem.vue';
 import { useMutation, useQuery } from '@/utils/api/hooks';
-import { getCities, getSearch, deleteCity } from '@/utils/api/requests';
-import { router } from '@/utils/constants';
+import { getCities, getSearch, deleteCity, getCitiesPopular } from '@/utils/api/requests';
 
 import SearchInput from './components/SearchInput/SearchInput.vue';
 
 // delete cors
-// default cities to mock request
-// use query params for refetch
-// add pagination logic for cities req
+
+const CITIES_LIMIT = 6;
 
 const search = ref('');
-const defaultCities = [
-  'tomsk-tomsk-russia',
-  'novosibirsk-novosibirsk-russia',
-  'new-york-new-york-united-states-of-america',
-  'paris-ile-de-france-france',
-  'australind-western-australia-australia',
-  'toronto-ontario-canada'
-];
-const cities = ref<City[]>([]);
-
 const getSearchMutation = useMutation(getSearch);
-const isLoading = getSearchMutation.loading;
-
 watchDebounced(
   search,
   async () => {
@@ -37,15 +23,21 @@ watchDebounced(
   { debounce: 1000 }
 );
 
-const deleteCityMutation = useMutation(deleteCity);
-const getCitiesQuery = useQuery((args: { limit: number; offset: number }) =>
-  getCities({ limit: 5, offset: 5 })
-);
+const page = ref(1);
 
-const goToCity = (id: string) => router.push({ name: 'city', params: { id } });
+const cities = ref<City[]>([]);
+
+const deleteCityMutation = useMutation(deleteCity);
+const getCitiesQuery = useQuery(() =>
+  getCities({ data: { limit: CITIES_LIMIT, offset: (page.value - 1) * CITIES_LIMIT } })
+);
+watch(page, getCitiesQuery.refetch);
+
+const getCitiesPopularQuery = useQuery(getCitiesPopular);
+
 const onDelete = async (id: string) => {
-  await deleteCityMutation.execute({ id });
-  getCitiesQuery.refetch({ limit: 5, offset: 5 });
+  await deleteCityMutation.execute({ data: { id } });
+  getCitiesQuery.refetch();
 };
 </script>
 
@@ -56,27 +48,45 @@ const onDelete = async (id: string) => {
     </div>
 
     <div class="cities_container">
-      <n-h2 prefix="bar" align-text type="info">
+      <n-h2 align-text type="info">
         <n-text type="info">Popular cities</n-text>
       </n-h2>
 
-      <n-grid x-gap="12" y-gap="12" :cols="3">
-        <n-gi v-for="defaultCity in defaultCities" :key="defaultCity">
-          <CityItem :name="defaultCity" />
+      <n-skeleton v-if="getCitiesPopularQuery.loading.value" height="300px" width="100%" />
+      <n-grid v-else x-gap="12" y-gap="12" cols="1 s:2 m:3" responsive="screen">
+        <n-gi v-for="citiesPopular in getCitiesPopularQuery.data.value" :key="citiesPopular">
+          <CityItem :name="citiesPopular" />
         </n-gi>
       </n-grid>
     </div>
 
-    <div class="cities_container">
-      <n-h2 prefix="bar" align-text type="info">
+    <div class="user_cities_container">
+      <n-h2 align-text type="info">
         <n-text type="info">User cities</n-text>
       </n-h2>
 
-      <n-grid x-gap="12" y-gap="12" :cols="3">
-        <n-gi v-for="city in getCitiesQuery.data.value" :key="city">
-          <CityItem :name="city" @delete="onDelete(city)" />
-        </n-gi>
-      </n-grid>
+      <n-flex v-if="getCitiesQuery.loading.value" vertical size="large" align="center">
+        <n-skeleton height="300px" width="100%" />
+        <n-skeleton size="small" width="30%" />
+      </n-flex>
+
+      <n-flex v-else vertical size="large">
+        <n-grid x-gap="12" y-gap="12" cols="1 s:2 m:3" responsive="screen">
+          <n-gi v-for="city in getCitiesQuery.data.value?.data" :key="city">
+            <CityItem :name="city" @delete="onDelete(city)" />
+          </n-gi>
+        </n-grid>
+
+        <n-flex
+          justify="center"
+          v-if="getCitiesQuery.data.value && getCitiesQuery.data.value.total > CITIES_LIMIT"
+        >
+          <n-pagination
+            v-model:page="page"
+            :page-count="Math.round(getCitiesQuery.data.value.total / CITIES_LIMIT)"
+          />
+        </n-flex>
+      </n-flex>
     </div>
   </section>
 </template>
@@ -88,10 +98,18 @@ const onDelete = async (id: string) => {
   align-items: center;
   position: relative;
   width: 100%;
-  margin-top: 30px;
 }
 
 .cities_container {
   margin-top: 20px;
+}
+
+.user_cities_container {
+  margin-top: 50px;
+}
+
+.user_cities_container h2,
+.cities_container h2 {
+  text-align: center;
 }
 </style>
